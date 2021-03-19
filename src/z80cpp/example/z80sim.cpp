@@ -147,12 +147,12 @@ void Z80sim::runTest(std::ifstream* f) {
     }
 }
 
-int main(void) {
-
-    Z80sim sim = Z80sim();
-
-    ifstream f1("zexall.bin", ios::in | ios::binary | ios::ate);
-    sim.runTest(&f1);
-    f1.close();
-
-}
+//int main(void) {
+//
+//    Z80sim sim = Z80sim();
+//
+//    ifstream f1("zexall.bin", ios::in | ios::binary | ios::ate);
+//    sim.runTest(&f1);
+//    f1.close();
+//
+//}
