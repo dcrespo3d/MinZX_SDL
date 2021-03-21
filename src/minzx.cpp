@@ -297,10 +297,6 @@ static unsigned char wait_states[8] = { 6, 5, 4, 3, 2, 1, 0, 0 };
 // without reading the previous paragraphs about line timings, it may be confusing.
 unsigned char delay_contention(uint16_t address, unsigned int tstates)
 {
-	// delay for contended memory is only effective in the graphic memory range
-	if (address < 0x4000 || address > 0x7fff)
-		return 0;
-
 	// delay states one t-state BEFORE the first pixel to be drawn
 	tstates += 1;
 
@@ -319,12 +315,16 @@ unsigned char delay_contention(uint16_t address, unsigned int tstates)
 	return wait_states[modulo];
 }
 
+#define ADDRESS_IN_LOW_RAM(addr) (1 == (addr >> 14))
+
 /* Read opcode from RAM */
 uint8_t MinZX::fetchOpcode(uint16_t address)
 {
 	// 3 clocks to fetch opcode from RAM and 1 execution clock
+	if (ADDRESS_IN_LOW_RAM(address))
+		tstates += delay_contention(address, tstates);
+
 	tstates += 4;
-	tstates += delay_contention(address, tstates);
 	return mem[address];
 }
 
@@ -332,16 +332,20 @@ uint8_t MinZX::fetchOpcode(uint16_t address)
 uint8_t MinZX::peek8(uint16_t address)
 {
 	// 3 clocks for read byte from RAM
+	if (ADDRESS_IN_LOW_RAM(address))
+		tstates += delay_contention(address, tstates);
+
 	tstates += 3;
-	tstates += delay_contention(address, tstates);
 	return mem[address];
 }
 
 void MinZX::poke8(uint16_t address, uint8_t value)
 {
 	// 3 clocks for write byte to RAM
+	if (ADDRESS_IN_LOW_RAM(address))
+		tstates += delay_contention(address, tstates);
+
 	tstates += 3;
-	tstates += delay_contention(address, tstates);
 	mem[address] = value;
 }
 
@@ -366,7 +370,7 @@ uint8_t MinZX::inPort(uint16_t port)
 {
 	// 4 clocks for read byte from bus
 	tstates += 3;
-	
+
 	// return ports[port];
 	return processInputPort(port);
 }
@@ -384,8 +388,13 @@ void MinZX::outPort(uint16_t port, uint8_t value)
 void MinZX::addressOnBus(uint16_t address, int32_t wstates)
 {
 	// Additional clocks to be added on some instructions
-	tstates += wstates;
-	tstates += delay_contention(address, tstates);
+	if (ADDRESS_IN_LOW_RAM(address)) {
+		for (int idx = 0; idx < wstates; idx++) {
+			tstates += delay_contention(address, tstates) + 1;
+		}
+	}
+	else
+		tstates += wstates;
 }
 
 /* Clocks needed for processing INT and NMI */
