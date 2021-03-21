@@ -9,8 +9,18 @@
 #include "minzx.h"
 #include "filemgr.h"
 
+bool isLittleEndian()
+{
+	uint16_t val16 = 0x1;
+	uint8_t* ptr8 = (uint8_t*)(&val16);
+	return (*ptr8 == 1);
+}
+
 int main(int argc, char *argv[])
 {
+	if (isLittleEndian()) std::cout << "Running on little endian machine" << std::endl;
+	else                  std::cout << "Running on big endian machine"    << std::endl;
+
 	MinZX minZX;
 	minZX.init();
 
@@ -28,7 +38,9 @@ int main(int argc, char *argv[])
 		(
 		"SDL2",
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+//		960, 720,
 		1280, 960,
+//		2560, 1920,
 		SDL_WINDOW_SHOWN
 		);
 
@@ -131,7 +143,7 @@ int main(int argc, char *argv[])
 		SDL_RenderCopy(renderer, texture, NULL, NULL);
 		SDL_RenderPresent(renderer);
 
-		SDL_Delay(18);
+		SDL_Delay(17);
 
 		frames++;
 		const Uint64 end = SDL_GetPerformanceCounter();

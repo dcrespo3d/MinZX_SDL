@@ -12,17 +12,20 @@
 
 #include <stdint.h>
 
+
+#define Z80CPP_IS_LITTLE_ENDIAN 1
+
 /* Union allowing a register pair to be accessed as bytes or as a word */
 typedef union {
-//#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-//    struct {
-//        uint8_t hi, lo; 
-//    } byte8;
-//#else
+#ifdef Z80CPP_IS_LITTLE_ENDIAN
+	struct {
+		uint8_t lo, hi;
+	} byte8;
+#else
     struct {
-        uint8_t lo, hi;
+        uint8_t hi, lo; 
     } byte8;
-//#endif
+#endif
     uint16_t word;
 } RegisterPair;
 
