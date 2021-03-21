@@ -120,6 +120,7 @@
     <None Include="include\SDL2\SDL_config.h.cmake" />
     <None Include="include\SDL2\SDL_config.h.in" />
     <None Include="include\SDL2\SDL_config_macosx.h.orig" />
+    <None Include="README.md" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{909B26C5-7196-4436-A530-AC00B635BFDC}</ProjectGuid>

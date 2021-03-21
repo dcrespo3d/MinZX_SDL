@@ -13,6 +13,9 @@
     <Filter Include="z80cpp\example">
       <UniqueIdentifier>{5c7b669a-ffe2-40a6-b7d7-ef17e48c6b82}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Docs">
+      <UniqueIdentifier>{cb625a11-2951-4d6e-91e7-16d0c093bd02}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\z80cpp\z80.cpp">
@@ -309,6 +312,9 @@
     </None>
     <None Include="include\SDL2\SDL_config_macosx.h.orig">
       <Filter>SDL2</Filter>
+    </None>
+    <None Include="README.md">
+      <Filter>Docs</Filter>
     </None>
   </ItemGroup>
 </Project>

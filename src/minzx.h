@@ -43,6 +43,7 @@ private:
 	uint32_t cycleTstates;
 
 	void loadROM();
+	void loadDump();
 
 	void generateScreen(uint8_t* screen);
 

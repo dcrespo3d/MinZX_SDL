@@ -14,15 +14,15 @@
 
 /* Union allowing a register pair to be accessed as bytes or as a word */
 typedef union {
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-    struct {
-        uint8_t hi, lo;
-    } byte8;
-#else
+//#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+//    struct {
+//        uint8_t hi, lo; 
+//    } byte8;
+//#else
     struct {
         uint8_t lo, hi;
     } byte8;
-#endif
+//#endif
     uint16_t word;
 } RegisterPair;
 
@@ -197,10 +197,10 @@ private:
      * decreto. Si lo ponen a 1 por el mismo método basta con hacer un OR con
      * la máscara correspondiente.
      */
-    uint8_t sz53n_addTable[256] = {};
-    uint8_t sz53pn_addTable[256] = {};
-    uint8_t sz53n_subTable[256] = {};
-    uint8_t sz53pn_subTable[256] = {};
+    uint8_t sz53n_addTable[256];
+    uint8_t sz53pn_addTable[256];
+    uint8_t sz53n_subTable[256];
+    uint8_t sz53pn_subTable[256];
 
     // Un true en una dirección indica que se debe notificar que se va a
     // ejecutar la instrucción que está en esa direción.

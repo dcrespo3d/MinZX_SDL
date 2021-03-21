@@ -13,8 +13,12 @@ Z80::Z80(Z80operations *ops) {
     bool evenBits;
 
     for (uint32_t idx = 0; idx < 256; idx++) {
+		sz53n_addTable[idx] = 0;
+		sz53pn_addTable[idx] = 0;
+		sz53n_subTable[idx] = 0;
+		sz53pn_subTable[idx] = 0;
 
-        if (idx > 0x7f) {
+		if (idx > 0x7f) {
             sz53n_addTable[idx] |= SIGN_MASK;
         }
 
