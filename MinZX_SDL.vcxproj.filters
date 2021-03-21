@@ -30,6 +30,9 @@
     <ClCompile Include="src\z80cpp\example\z80sim.cpp">
       <Filter>z80cpp\example</Filter>
     </ClCompile>
+    <ClCompile Include="src\filemgr.cpp">
+      <Filter>MinZX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\z80cpp\z80.h">
@@ -301,6 +304,9 @@
     </ClInclude>
     <ClInclude Include="src\z80cpp\example\z80sim.h">
       <Filter>z80cpp\example</Filter>
+    </ClInclude>
+    <ClInclude Include="src\filemgr.h">
+      <Filter>MinZX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

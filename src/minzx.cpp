@@ -68,6 +68,17 @@ void MinZX::init()
 
 	//loadDump();
 	createSpectrumColors();
+
+	reset();
+}
+
+void MinZX::reset()
+{
+	border = 7;
+	z80->reset();
+
+	ports[0x001F] = 0;
+	ports[0x011F] = 0;
 }
 
 void MinZX::update(uint8_t* screen)
@@ -134,7 +145,7 @@ void MinZX::generateScreen(uint8_t* screen)
 	uint32_t blk = 0xFF000000;
 	uint32_t whi = 0xFFFFFFFF;
 
-	uint32_t borderColor = zxColor(7, 0);
+	uint32_t borderColor = zxColor(border, 0);
 
 	for (int scrY = 0; scrY < HSCR; scrY++)
 	{
@@ -205,16 +216,115 @@ void MinZX::generateScreen(uint8_t* screen)
 	}
 }
 
+uint8_t MinZX::processInputPort(uint16_t port)
+{
+	uint8_t hiport = port >> 8;
+	uint8_t loport = port & 0xFF;
+
+	if (loport == 0xFE) {
+		uint8_t result = 0xFF;
+
+		// EAR_PIN
+		if (hiport == 0xFE) {
+#ifdef EAR_PRESENT
+			bitWrite(result, 6, digitalRead(EAR_PIN));
+#endif
+		}
+
+		// Keyboard
+		//if (~(portHigh | 0xFE) & 0xFF) result &= (Ports::base[0] & Ports::wii[0]);
+		//if (~(portHigh | 0xFD) & 0xFF) result &= (Ports::base[1] & Ports::wii[1]);
+		//if (~(portHigh | 0xFB) & 0xFF) result &= (Ports::base[2] & Ports::wii[2]);
+		//if (~(portHigh | 0xF7) & 0xFF) result &= (Ports::base[3] & Ports::wii[3]);
+		//if (~(portHigh | 0xEF) & 0xFF) result &= (Ports::base[4] & Ports::wii[4]);
+		//if (~(portHigh | 0xDF) & 0xFF) result &= (Ports::base[5] & Ports::wii[5]);
+		//if (~(portHigh | 0xBF) & 0xFF) result &= (Ports::base[6] & Ports::wii[6]);
+		//if (~(portHigh | 0x7F) & 0xFF) result &= (Ports::base[7] & Ports::wii[7]);
+
+		return result;
+	}
+	// Kempston
+	if (loport == 0x1F) {
+		//return Ports::base[31];
+		return 0x00;
+	}
+	// Sound (AY-3-8912)
+
+	uint8_t data = 0;
+	data |= (0xe0); /* Set bits 5-7 - as reset above */
+	data &= ~0x40;
+	// Serial.printf("Port %x%x  Data %x\n", portHigh,loport,data);
+	return data;
+}
+
+
+void MinZX::processOutputPort(uint16_t port, uint8_t value)
+{
+	uint8_t hiport = port >> 8;
+	uint8_t loport = port & 0xFF;
+
+	uint8_t tmp_data = value;
+	switch (loport) {
+		case 0xFE: {
+
+			// delayMicroseconds(CONTENTION_TIME);
+
+			// border color (no bright colors)
+			border = value & 0x07;
+
+#ifdef SPEAKER_PRESENT
+			digitalWrite(SPEAKER_PIN, bitRead(data, 4)); // speaker
+#endif
+
+#ifdef MIC_PRESENT
+			digitalWrite(MIC_PIN, bitRead(data, 3)); // tape_out
+#endif
+
+			//Ports::base[0x20] = data;
+			break;
+		}
+	}
+}
+
+// sequence of wait states
+static unsigned char wait_states[8] = { 6, 5, 4, 3, 2, 1, 0, 0 };
+
+// delay contention: emulates wait states introduced by the ULA (graphic chip)
+// whenever there is a memory access to contended memory (shared between ULA and CPU).
+// detailed info: https://worldofspectrum.org/faq/reference/48kreference.htm#ZXSpectrum
+// from paragraph which starts with "The 50 Hz interrupt is synchronized with..."
+// if you only read from https://worldofspectrum.org/faq/reference/48kreference.htm#Contention
+// without reading the previous paragraphs about line timings, it may be confusing.
+unsigned char delay_contention(uint16_t address, unsigned int tstates)
+{
+	// delay for contended memory is only effective in the graphic memory range
+	if (address < 0x4000 || address > 0x7fff)
+		return 0;
+
+	// delay states one t-state BEFORE the first pixel to be drawn
+	tstates += 1;
+
+	// each line spans 224 t-states
+	int line = tstates / 224;
+
+	// only the 192 lines between 64 and 255 have graphic data, the rest is border
+	if (line < 64 || line >= 256) return 0;
+
+	// only the first 128 t-states of each line correspond to a graphic data transfer
+	// the remaining 96 t-states correspond to border
+	int halfpix = tstates % 224;
+	if (halfpix >= 128) return 0;
+
+	int modulo = halfpix % 8;
+	return wait_states[modulo];
+}
+
 /* Read opcode from RAM */
 uint8_t MinZX::fetchOpcode(uint16_t address)
 {
-	//LOG("tstate: %5d - fetch: 0x%04X - %u\n", tstates, address, address);
-	if (address == 4757) {
-		address = address;
-	}
 	// 3 clocks to fetch opcode from RAM and 1 execution clock
 	tstates += 4;
-
+	tstates += delay_contention(address, tstates);
 	return mem[address];
 }
 
@@ -223,6 +333,7 @@ uint8_t MinZX::peek8(uint16_t address)
 {
 	// 3 clocks for read byte from RAM
 	tstates += 3;
+	tstates += delay_contention(address, tstates);
 	return mem[address];
 }
 
@@ -230,6 +341,7 @@ void MinZX::poke8(uint16_t address, uint8_t value)
 {
 	// 3 clocks for write byte to RAM
 	tstates += 3;
+	tstates += delay_contention(address, tstates);
 	mem[address] = value;
 }
 
@@ -254,14 +366,18 @@ uint8_t MinZX::inPort(uint16_t port)
 {
 	// 4 clocks for read byte from bus
 	tstates += 3;
-	return ports[port];
+	
+	// return ports[port];
+	return processInputPort(port);
 }
 
 void MinZX::outPort(uint16_t port, uint8_t value)
 {
 	// 4 clocks for write byte to bus
 	tstates += 4;
-	ports[port] = value;
+
+	// ports[port] = value;
+	processOutputPort(port, value);
 }
 
 /* Put an address on bus lasting 'tstates' cycles */
@@ -269,6 +385,7 @@ void MinZX::addressOnBus(uint16_t address, int32_t wstates)
 {
 	// Additional clocks to be added on some instructions
 	tstates += wstates;
+	tstates += delay_contention(address, tstates);
 }
 
 /* Clocks needed for processing INT and NMI */

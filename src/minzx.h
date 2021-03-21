@@ -13,7 +13,16 @@ public:
 
 	void destroy();
 
-protected:
+	void reset();
+
+	void setBorderColor(uint8_t bcol) { border = bcol; }
+	void notifyKey(uint8_t specKey, bool isDown);
+
+	// accessors (for loaders)
+	Z80*     getCPU()    { return z80; }
+	uint8_t* getMemory() { return mem; }
+
+public:
 	virtual uint8_t  fetchOpcode (uint16_t address);
 	virtual uint8_t  peek8       (uint16_t address);
 	virtual void     poke8       (uint16_t address, uint8_t value);
@@ -32,8 +41,6 @@ protected:
 	virtual void     execDone(void);
 #endif
 
-
-
 private:
 	Z80* z80;
 	uint8_t* mem;
@@ -46,6 +53,10 @@ private:
 	void loadDump();
 
 	void generateScreen(uint8_t* screen);
+
+	uint8_t processInputPort(uint16_t port);
+
+	void processOutputPort(uint16_t port, uint8_t value);
 
 	uint8_t border;
 };

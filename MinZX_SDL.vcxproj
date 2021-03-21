@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\filemgr.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\minzx.cpp" />
     <ClCompile Include="src\z80cpp\example\z80sim.cpp" />
@@ -113,6 +114,7 @@
     <ClInclude Include="include\SDL2\SDL_vulkan.h" />
     <ClInclude Include="include\z80cpp\z80.h" />
     <ClInclude Include="include\z80cpp\z80operations.h" />
+    <ClInclude Include="src\filemgr.h" />
     <ClInclude Include="src\minzx.h" />
     <ClInclude Include="src\z80cpp\example\z80sim.h" />
   </ItemGroup>

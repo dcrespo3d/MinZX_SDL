@@ -7,11 +7,17 @@
 
 #include "SDL.h"
 #include "minzx.h"
+#include "filemgr.h"
 
 int main(int argc, char *argv[])
 {
 	MinZX minZX;
 	minZX.init();
+
+	FileMgr fileMgr;
+
+	if (argc > 1)
+		fileMgr.loadSNA(argv[1], &minZX);
 
 	SDL_Init(SDL_INIT_EVERYTHING);
 
@@ -125,7 +131,7 @@ int main(int argc, char *argv[])
 		SDL_RenderCopy(renderer, texture, NULL, NULL);
 		SDL_RenderPresent(renderer);
 
-		SDL_Delay(19);
+		SDL_Delay(18);
 
 		frames++;
 		const Uint64 end = SDL_GetPerformanceCounter();
